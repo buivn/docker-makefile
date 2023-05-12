@@ -19,7 +19,7 @@ This package initialized for cs695-005 course's project, too; and ran several ne
 
 Many other tensorflow models are available at the following [link](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md )
 
-### Thank you
+### Acknowledgement
 We have learned and used the following repos to build this repo. Thank you for their great work.
 - https://github.com/nileshchopda/Traffic-Light-Detection-And-Color-Recognition
 - https://github.com/aarcosg/traffic-sign-detection
