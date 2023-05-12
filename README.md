@@ -1,7 +1,7 @@
 # docker-makefile
 This repo consists of several tutorials, which use Docker+make for some CS-courses.
 
-### basic_tutorials package
+### docker_tutorials
 This package is forked from the repo of [RAIL-software-infrastructure-demos](https://github.com/RAIL-group/RAIL-software-infrastructure-demos). It is used in running simple Unity with GPU, Python, Cpp program, Parallel Program, PyBind.
 
 
