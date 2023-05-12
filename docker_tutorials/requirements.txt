@@ -1,0 +1,13 @@
+# Core Requirements
+numpy
+scipy
+opencv-python
+
+# Plotting
+matplotlib
+
+# Testing & Formatting
+pytest
+pytest-timeout
+yapf
+flake8

@@ -1,0 +1,268 @@
+* Docker Learning
+
+This repository is generally devoted to demonstrating how Docker and make can be used in tandem for robotics research (and how a GPU can be supported).
+
+This repository has a number of examples of use to Robotics and Computer Vision researchers:
+- Run multiple processes in parallel with GNU Make. ([[#running-multiple-processes-in-parallel-with-gnu-make][link]])
+- Run C++ code from Python using PyBind11; this code is built inside the Docker container as part of the build process. [Work in Progress]
+- Run a Unity3D simulation environment with hardware (GPU) acceleration with Virtual GL. ([[#running-the-unity3d-environment-within-docker][link]])
+- Run test code inside the Docker container. ([[#running-tests-in-docker-via-pytest][link]])
+
+* Getting started
+First, docker must be installed by following [[https://docs.docker.com/engine/install/ubuntu/][the official docker install guide]]. Once Docker works as expected, running =make build= from the root directory of this repository will build the Docker container used to run the demos.
+
+** Overview of Functionality
+The highlights of the capabilities shown in this repository (and their associated make commands) are as follows:
+
+- =make build= A command for building the docker container used for running this repository and unzipping the Unity environment used for some of the demos
+- =make all= (can be run in parallel via =make -j8 all=) Runs tests and all demos.
+- =make demo-batch-parallel= A make target that aggregates other targets, each parameterized by their "random seed". In this case, the other targets can be run in parallel, something that is easy in make using the =-jN= syntax, where =N= is the number of parallel jobs. For example, running this with =make -j8 demo-batch-parallel= will run 8 parallel seeds if supported by the CPU.
+- =make demo-plotting= Show that python plotting can be used inside the container. If the following bash environment variable is set =XPASSTHROUGH=true=, an interactive plot will be shown: execute =export XPASSTHROUGH=true= in the terminal or run the command as =XPASSTHROUGH=true make demo-plot= to set this variable. If this argument is not set, a plot will be written to file instead and appear in the =./data= folder.
+- =make demo-pybind= Runs some example C++ code via PyBind11, which allows us to wrap C++ functions and classes with a Python API. This demo shows that passing an array to C++ and manipulating it via Eigen is faster than performing operations by looping over the array and competitive with Numpy.
+- =make demo-unity-env= Shows that a Unity environment can be run inside the Docker container, to be interfaced with via the Python =unitybridge= package. An example Unity has been included in =unity.zip= and is unpacked as part of the build process.
+
+Other useful make targets:
+- =make term= Launches a bash terminal from inside the Docker container
+- =make devel= Like =make term=, but links local versions of the development code: i.e. if development code is modified inside the container, the code outside the container will also change.
+- =make format= Formats python code via =yapf=
+- =make test= Runs python tests via =pytest=
+
+*Note*: this container defaults to using =DISPLAY=0:0= if the =DISPLAY= environment variable is not set. While running the Unity environment via =make demo-unity-env=, you may encounter the error =[VGL] ERROR: Could not open display :0=; running ~export DISPLAY=:1~ resolves this issue on most systems.
+
+** Using a GPU
+
+This repository is configured such that if a GPU is available in the container, it can be used. For the GPU to be accessible from within the container, our docker environments will require that the NVIDIA docker runtime is installed (via =nvidia-container-toolkit=. Follow the install instructions on the [[https://github.com/NVIDIA/nvidia-docker#quickstart][nvidia-docker GitHub page]] to get it.
+
+Once these two things are installed, you should be able to confirm that you have GPU support via:
+
+#+begin_src bash
+docker run --gpus all nvidia/cuda:11.1-base nvidia-smi
+#+end_src
+
+Adding =USE_GPU=true= to any target will enable GPU-based running inside the container:
+
+#+begin_src bash
+make build && make test USE_GPU=true
+#+end_src
+
+To confirm it is working as expected, you should notice a considerable speedup in the run time with and without the GPU for targets running the Unity simulation environment.
+
+* Running multiple processes in parallel with GNU Make
+
+*Goal:* Show how to define GNU Make "targets" and execute them in parallel.
+
+*Motivation:* We often generate data or run evaluations in parallel to save time. With Make, this is fairly easy, and with the right setup we can run multiple operations in parallel with only a small change at the command line.
+
+#+begin_quote
+If you are not yet familiar with the fundamentals of GNU Make, [[https://rail-group.notion.site/Using-GNU-Make-to-build-code-and-run-experiments-beb78c4f0afe4956813dd4cb7e387415][see our guide on using Make here]].
+#+end_quote
+
+Make supports arbitrary operations on strings, enabled by the `$(shell ...)` syntax. This special Make command allows you to run arbitrary bash commands to generate or process strings, very useful if you would like to (for example) spawn a number of processes that have a specified (non-random) seed, and wait an amount of time between 1 and 3 seconds. We can do that with Make:
+
+#+begin_src makefile
+.PHONY: demo-batch-parallel-seeds demo-batch-parallel-all an-example-dependency
+
+an-example-dependency:
+	@echo "Running dependency."
+
+demo-batch-parallel-seeds = $(shell for ii in $$(seq 100 120); do echo "demo-batch-parallel-$$ii"; done)
+$(demo-batch-parallel-seeds): an-example-dependency
+	@echo "Seed: $(shell echo '$@' | grep -Eo '[0-9]+'). Waiting..."
+	@sleep $(shell echo '$@' | grep -Eo '[0-9]+' | awk '{print $$0%3 + 1}')
+	@echo "...Done"
+
+demo-batch-parallel-all: $(demo-batch-parallel-seeds)
+#+end_src
+
+So let's break this down: first we start off with =.PHONY= to protect ourselves, since we're not creating any files. Next we create an example target =an-example-dependency= that will serve as... an example dependency.
+
+Next, we have a more complex series of commands that define each of our individual =demo-batch-parallel-seeds= targets: we first define =demo-batch-parallel-seeds= as a list made up of =demo-batch-parallel-100 demo-batch-parallel-101 demo-batch-parallel-102= etc. For each element of the list we wish to define our make target (every item in the list is "pasted" on the left hand side of the =:=) and then it waits for a specified amount of time. Notice that using the built-in =$(shell ...)=, we can do some string processing to get the number at the end of the =demo-batch-parallel-##= command and use it later on to control how long the =sleep= command runs.
+
+Finally, the =demo-batch-parallel-all= target takes *all* of the =$(demo-batch-parallel-seeds)= as dependencies, which means that running `make demo-batch-parallel-all` will run every one of those other targets.
+
+So let's see what happens. Starting small, we can see (as we might expect) that running =make an-example-dependency= prints =Running dependency.= to the terminal. Something else interesting is that you can run a single seed /individually/. Calling, for example, =make demo-batch-parallel-103= outputs the following (and takes roughly 2 seconds to run):
+
+#+begin_src text
+Running dependency.
+Seed: 103. Waiting...
+...Done
+#+end_src
+Notice that it first runs the dependency and then runs the target of interest. Now let's see what happens when we run =make demo-batch-parallel-all=. The output begins with the following:
+#+begin_src text
+Running dependency.
+Seed: 100. Waiting...
+...Done
+Seed: 101. Waiting...
+...Done
+Seed: 102. Waiting...
+...Done
+Seed: 103. Waiting...
+...Done
+Seed: 104. Waiting...
+...Done
+Seed: 105. Waiting...
+...Done
+Seed: 106. Waiting...
+...Done
+Seed: 107. Waiting...
+...Done
+Seed: 108. Waiting...
+...Done
+#+end_src
+...and continues for all 20 seeds, taking a total of just over 42.5 seconds. Notice also that the dependency was only run a single time! This is what we would hope for: the dependency should only be needed a single time and Make is clever enough to have realized that, saving computation as compared to running each target individually.
+
+Make supports parallel execution by default and makes it super easy: by adding the =-j= flag, followed by a number (e.g., =-j4=), you can run that many threads in parallel, limited only by the number of threads your processor can support. Running instead =make -j4 demo-batch-parallel-all= produces the following (truncated) output:
+
+#+begin_src text
+Running dependency.
+Seed: 100. Waiting...
+Seed: 101. Waiting...
+Seed: 102. Waiting...
+Seed: 103. Waiting...
+...Done
+Seed: 104. Waiting...
+...Done
+Seed: 105. Waiting...
+...Done
+Seed: 106. Waiting...
+...Done
+Seed: 107. Waiting...
+...Done
+Seed: 108. Waiting...
+...Done
+...Done
+Seed: 109. Waiting...
+...Done
+Seed: 110. Waiting...
+Seed: 111. Waiting...
+...Done
+#+end_src
+
+The entire execution takes only 12.14 seconds, significantly faster than the original single-threaded execution, since none of the tasks block one another and can be run on separate threads.
+
+* Docker fundamentals and writing plots to file
+
+*Goal:* Write a plot to file from within the Docker container; understand syntax of GNU make and how Make avoids re-generating existing files.
+
+*Motivation:* We are constantly running code inside Docker and writing data or other byproducts to file. This example shows how to make that happen for a simple plotting script. Additionally, Make will save on computation when it realizes that some output already exists.
+
+** Plotting from within Docker
+
+Make sure you have already built the repository via =make build=. Docker and GNU Make are at the core of our workflow. Each /make target/ is essentially a wrapper around python. The =$(DOCKER_PYTHON)= variable in Make is an alias for running python inside the container. We have provided a simple plotting script and call it from a Docker container, as specified in the following Make targets:
+
+#+begin_src makefile
+# This target is to make an image by calling a script
+demo-plotting-image-name = $(DATA_BASE_DIR)/demo_plotting.png
+$(demo-plotting-image-name):
+	@echo "Demo: Write a plot from within Docker"
+	@$(DOCKER_PYTHON) -m scripts.plotting_demo \
+		--output_image /data/demo_plotting.png
+
+# A high-level target that calls the plotting target with a more convenient name
+.PHONY: demo-plotting
+demo-plotting: $(demo-plotting-image-name)
+
+# Delete the file created by the plotting target
+demo-plotting-clean:
+	@echo "Cleaning products from the plotting demo."
+	@echo "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
+	@rm -rf $(demo-plotting-image-name)
+#+end_src
+
+Running =make demo-plotting= will generate an image at =data/demo_plotting.png=. Data created inside a Docker container is not kept by default, so we "mount" the local =data= in this repository at =/data= inside the container. When the image is written to =/data/demo_plotting.png=, it persists in the local folder where it can be viewed even after the container terminates.
+
+GNU Make is clever at saving on computation. Running =make demo-plotting= a second time will do nothing (and Make will output =Nothing to be done for `demo-plotting'.= to reflect this). This is because the plot file already exists and its target (named after the file: =$(DATA_BASE_DIR)/demo_plotting.png=) is only run whenever that file does not exist. Delete the file by running =make demo-plotting-clean=. Afterwards, =make demo-plotting= will regenerate the file when run.
+
+** Visualizing a plot from within Docker
+
+We also provide another target that allows one to visualize the plot without writing it to file:
+#+begin_src makefile
+.PHONY: demo-plotting-visualize
+demo-plotting-visualize: XPASSTHROUGH=true
+demo-plotting-visualize:
+	@echo "Demo: Plotting from within Docker"
+	@$(DOCKER_PYTHON) -m scripts.plotting_demo \
+		--xpassthrough $(XPASSTHROUGH)
+#+end_src
+Note that this target is a bit more finicky, since it requires that the `DISPLAY` environment variable is properly set. If not, the target will fail, declaring that matplotlib is being run in `headless' mode. Setting the display variable manually to either ~DISPLAY=:0~ or ~DISPLAY=:1~ will work on most machines with a working X-server:
+#+begin_src bash
+make demo-plotting-visualize DISPLAY=:1
+#+end_src
+
+* Running tests in Docker via PyTest
+
+*Goal:* Demonstrate how to run PyTest test code from within Docker.
+
+*Motivation:* Testing is an important part of any reliable workflow. Not only do manually run tests during development, but the test target is run as part of our Continuous Integration (CI) infrastructure as well. We use a [[https://github.com/RAIL-group/RAIL-software-infrastructure-demos/blob/main/.github/workflows/test_unity_container.yml][GitHub Action]] to automatically test our code before it's merged into =main=; this is also used to update the badge at the top of this repository.
+
+Running tests is fairly straightforward:
+#+begin_src makefiletest: build
+test: build
+	$(DOCKER_PYTHON) -m py.test \
+		-rsx \
+		--unity_exe_path /unity/$(UNITY_DBG_BASENAME).x86_64 \
+		tests
+#+end_src
+Running =make test= will build the repository and then run the tests.
+
+We have set up an argument to pass the Unity executable path to the tests, so that the unity environment can be run; see our =conftest.py= file [[https://github.com/RAIL-group/RAIL-software-infrastructure-demos/blob/main/src/tests/conftest.py][here]] for details. By default-the tests are run without the GPU, but setting ~USE_GPU=true~ will enable it: ~make test USE_GPU=true~.
+
+* Running the Unity3D environment within Docker
+
+We have provided a script and accompanying make target that runs the Unity simulation environment:
+
+#+begin_src makefile
+  # A target that runs the Unity3D enviornment and generates an image
+  .PHONY: demo-unity-env
+  demo-unity-env:
+	  @echo "Demo: Interfacing with Unity"
+	  @$(call xhost-activate)
+	  @docker run --init --net=host \
+		  $(DOCKER_ARGS) $(DOCKER_CORE_ARGS) \
+		  ${IMAGE_NAME}:${VERSION} \
+		  python3 -m scripts.unity_env_demo \
+		  --unity_exe_path /unity/$(UNITY_DBG_BASENAME).x86_64 \
+		  --output_image /data/demo_unity_env.png \
+		  --xpassthrough $(XPASSTHROUGH)
+#+end_src
+Now you can run this code using one of these configurations:
+#+begin_src bash
+  # With the CPU
+  make build && make demo-unity-env
+  # With a GPU
+  make build && make demo-unity-env USE_GPU=true
+  # With a GPU (some machines use DISPLAY=:1 and will fail without this)
+  make build && make demo-unity-env USE_GPU=true DISPLAY=:1
+#+end_src
+
+Running one of these should write an image =demo_unity_env.png= into the =data= folder. With =USE_GPU=true=, the Unity3D environment runs with hardware acceleration (as long as Nvidia Docker is configured and runs with your local GPU), allowing us to generate the image relatively quickly. *Note:* There may be a number of warnings beginning with =ALSA= upon running this command. These are complaints that a sound card does not exist and can be ignored for our purposes.
+
+The Unity environment can also be run on the CPU (the configuration above without =USE_GPU=true=) though is considerably slower. However, this feature can be useful for running simple unit tests, and indeed a test confirming that we can communicate with the Unity simulation environment is included in our unit tests and is run as part of our automated continuous integration setup managed via GitHub Actions.
+
+** How does hardware acceleration (GPU) work?
+
+The Unity3D environment is running inside a Docker container with hardware support. There are a few pieces required to make this setup work correctly. The first is the container itself, which must have the ability to support OpenGL. For this, our Dockerfile starts with the =cudagl= container provided by Nvidia:
+#+begin_src dockerfile
+FROM nvidia/cudagl:11.1-devel-ubuntu20.04
+#+end_src
+This container has OpenGL already installed and provides the resources we need to access hardware acceleration that Unity3D relies upon to run at target speeds. Next, we need to build =VirtualGL= inside the container; VirtualGL was created to allow for "server-side 3D rendering" where a computer may not have a screen attached and may or may not be running an X window server. VirtualGL allows to use local hardware (a GPU) to run applications on this "remote machine" (or inside a container). To build VirtualGL, we use the following command in the Dockerfile:
+#+begin_src dockerfile
+  # Install VirtualGL
+  ENV VIRTUALGL_VERSION 2.5.2
+  RUN curl -sSL https://downloads.sourceforge.net/project/virtualgl/"${VIRTUALGL_VERSION}"/virtualgl_"${VIRTUALGL_VERSION}"_amd64.deb -o virtualgl_"${VIRTUALGL_VERSION}"_amd64.deb && \
+	    dpkg -i virtualgl_*_amd64.deb && \
+	    /opt/VirtualGL/bin/vglserver_config -config +s +f -t && \
+#+end_src
+Finally, we need to run our Unity environment. VirtualGL still requires an X window server to be running, so we "fake" one using =xvfb= (the X virtual frame buffer), which creates a X window server inside the docker container that VirtualGL can latch on to. The full code exists inside [[src/entrypoint.sh][the src/entrypoint.sh script]] that launches when the Docker container is created, but the relevant snippet is here:
+#+begin_src bash
+export VGL_DISPLAY=$DISPLAY
+xvfb-run -a --server-num=$((99 + $RANDOM % 10000)) \
+     --server-args='-screen 0 640x480x24 +extension GLX +render -noreset' vglrun $@
+#+end_src
+This script does a number of things all at once:
+1. It sets =VGL_DISPLAY= to =$DISPLAY=, which is required to ensure that the "display" that VirtualGL is writing to is the same as the display the X window manager is writing to. Even without a physical display, this is important for GPU access.
+2. It launches a local X window server using =xvfb-run=. The =--server-num= is set to a random number so that there is no conflict during container creation; even though there could be a conflict, =xvfb= will find another number if one is already running. This is helpful to avoid a race condition, that should no longer happen (...much), deconflicted due to =$RANDOM=. The arguments on the right tell =xvfb= to create a screen of size 640x480 and with =GLX=: OpenGL hardware acceleration.
+3. Finally, =vglrun $@= runs the command input to the script =$@= within =VirtualGL= (and to inherit the X window server provided by =xvfb-run=.
+Alltogether, this allows us to run any process inside the Docker container with hardware-acceleration and an X window server.
+
+We provide the =unitybridge= package that launches our Unity environment, which is provided as a pre-built binary along with this repository. Unfortunately, at this time the Unity environment itself is not open source, but this process should work with any Unity application.
