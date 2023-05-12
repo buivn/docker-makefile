@@ -1,10 +1,9 @@
 # docker-makefile
-This repo consists of several projects which use Docker+make for Robotics and Computer Vision research.
+This repo consists of several tutorials, which use Docker+make for some CS-courses.
 
 ### basic_tutorials package
+This package is forked from the repo of [RAIL-software-infrastructure-demos](https://github.com/RAIL-group/RAIL-software-infrastructure-demos). It is used in running simple Unity with GPU, Python, Cpp program, Parallel Program, PyBind.
 
-Docker will be used in running simple Unity with GPU, Python, Cpp program, Parallel Program, PyBind.
-cs695-005 package
 
 ### ubuntu18 (cs695-005)
 This package initialized for cs695-005 course's project, and ran several networks to process point cloud and traffic sign regconition.
