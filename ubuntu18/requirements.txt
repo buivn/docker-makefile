@@ -1,0 +1,13 @@
+# Core Requirements
+numpy
+scipy
+opencv-python==4.3.0.36
+
+# Plotting
+matplotlib
+
+# Testing & Formatting
+pytest
+pytest-timeout
+yapf
+flake8
