@@ -1,9 +1,4 @@
 
-##### Author - Nilesh Chopda
-
-##### Project - Traffic Light Detection and Color Recognition using Tensorflow Object Detection API
-
-
 import numpy as np
 import os
 # import six.moves.urllib as urllib
@@ -60,9 +55,7 @@ def detect_red_and_yellow(img, Threshold=0.01):
         return False
 
 
-
 ### Loading Image Into Numpy Array
-
 def load_image_into_numpy_array(image):
     (im_width, im_height) = image.size
     return np.array(image.getdata()).reshape(
@@ -127,10 +120,6 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
 
     commands = []
 
-    # What model to download
-    # MODEL_FILE = MODEL_NAME + '.tar.gz'
-    # DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
-
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
     path_to_model = "models/"+ MODEL_NAME + '/frozen_inference_graph.pb'
 
@@ -140,17 +129,7 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
     # number of classes for COCO dataset
     NUM_CLASSES = 90
 
-    # --------Download model----------
-    # if path.isdir(MODEL_NAME) is False:
-    #     opener = urllib.request.URLopener()
-    #     opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_FILE)
-    #     tar_file = tarfile.open(MODEL_FILE)
-    #     for file in tar_file.getmembers():
-    #         file_name = os.path.basename(file.name)
-    #         if 'frozen_inference_graph.pb' in file_name:
-    #             tar_file.extract(file, os.getcwd())
-
-    # --------Load a (frozen) Tensorflow model into memory
+    # Load the pretrained Tensorflow model into memory
     detection_graph = tf.Graph()
     with detection_graph.as_default():
         od_graph_def = tf.compat.v1.GraphDef()
@@ -198,11 +177,9 @@ def detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_
                 stop_flag = read_traffic_lights_object(image, np.squeeze(boxes), np.squeeze(scores),
                                                        np.squeeze(classes).astype(np.int32))
                 if stop_flag:
-                    # print('{}: stop'.format(image_path))  # red or yellow
                     commands.append(False)
                     cv2.putText(image_np, 'Stop', (15, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 1)
                 else:
-                    # print('{}: go'.format(image_path))
                     commands.append(True)
                     cv2.putText(image_np, 'Go', (15, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
 
@@ -223,8 +200,7 @@ if __name__ == "__main__":
     PATH_TO_TEST_IMAGES_DIR = 'data/tl_detection'
 
     # Specify downloaded model name
-    # MODEL_NAME ='ssd_mobilenet_v1_coco_11_06_2017'    # for faster detection but low accuracy
-    MODEL_NAME = 'faster_rcnn_resnet101_coco_11_06_2017'  # for improved accuracy
+    MODEL_NAME = 'faster_rcnn_resnet101_coco_11_06_2017' 
 
     commands = detect_traffic_lights(PATH_TO_TEST_IMAGES_DIR, MODEL_NAME, Num_images, plot_flag=True)
     print(commands)  # commands to print action type, for 'Go' this will return True and for 'Stop' this will return False

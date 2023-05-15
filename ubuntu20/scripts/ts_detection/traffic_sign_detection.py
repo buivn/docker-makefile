@@ -18,19 +18,12 @@ def main():
 
 	MODEL_NAME = 'faster_rcnn_inception_resnet_v2_atrous'
 
-	# MODEL_NAME = 'faster_rcnn_resnet_101'
-	# MODEL_NAME = 'faster_rcnn_resnet50'
-	# MODEL_NAME = 'faster_rcnn_inception_v2'
-	# MODEL_NAME = 'rfcn_resnet101'
-	# MODEL_NAME = 'ssd_inception_v2'
-	# MODEL_NAME = 'ssd_mobilenet_v1'
 
 	# Path to frozen detection graph. This is the actual model that is used for the traffic sign detection.
 	MODEL_PATH = os.path.join('models', MODEL_NAME)
 	PATH_TO_CKPT = os.path.join(MODEL_PATH,'inference_graph/frozen_inference_graph.pb')
 
 	# List of the strings that is used to add correct label for each box.
-	# PATH_TO_LABELS = os.path.join('gtsdb_data', 'gtsdb3_label_map.pbtxt')
 	PATH_TO_LABELS = 'gtsdb3_label_map.pbtxt'
 
 	NUM_CLASSES = 3
@@ -39,22 +32,10 @@ def main():
 	detection_graph = tf.Graph()
 	with detection_graph.as_default():
 		od_graph_def = tf.compat.v1.GraphDef()
-		# od_graph_def = tf.GraphDef()
-		# with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
 		with tf.compat.v2.io.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
 			serialized_graph = fid.read()
 			od_graph_def.ParseFromString(serialized_graph)
 			tf.import_graph_def(od_graph_def, name='')
-
-	# Loading label map
-	# with open("scripts/data.json", "r") as read_file:
-	# 	# data = json.load(read_file)
-	# 	data = read_file.read()
-	
-	# label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
-
-
-	# categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 
 	categories = []
 	
@@ -65,16 +46,6 @@ def main():
 	category_index = {}
 	for cat in categories:
 		category_index[cat['id']] = cat
-
-	# for class_id in range(NUM_CLASSES):
-	# 	categories.append({
-	# 		'id': class_id + label_id_offset,
-	# 		'name': 'category_{}'.format(class_id + label_id_offset)
-	# 	})
-
-	# category_index = label_map_util.create_category_index(categories)
-	# print(label_map)
-
 
 	# Detection Code
 	# If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.

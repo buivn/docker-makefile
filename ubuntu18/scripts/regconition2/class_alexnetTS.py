@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Oct  9 19:17:56 2020
-
-"""
-
 import torch.nn as nn
 
 class AlexnetTS(nn.Module):

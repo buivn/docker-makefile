@@ -5,7 +5,6 @@ import torch.utils.data as data
 import time
 import numpy as np
 import os
-# import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
 
@@ -33,13 +32,7 @@ for i in num:
     labels[i] = int(labels[i])
 print("List of labels : ")
 print("Actual labels \t--> Class in PyTorch")
-# for i in num:
-#     print("\t%d \t--> \t%d" % (labels[i], i))
 
-
-# df = pd.read_csv("../data/Test.csv")
-# numExamples = len(df)
-# labels_list = list(df.ClassId)
 
 from scripts.regconition2.class_alexnetTS import AlexnetTS
 MODEL_PATH = "scripts/regconition2/traffic_models/pytorch_classification_alexnetTS.pth"
@@ -47,7 +40,6 @@ model = AlexnetTS(numClasses)
 if torch.cuda.is_available():
     print("Run with cuda")
     print("\n")
-# model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
 model.load_state_dict(torch.load(MODEL_PATH))
 model = model.cuda()
 
@@ -80,20 +72,8 @@ with torch.no_grad():
         	type_traff = "mandatory"
         else:
         	type_traff = "danger"
-
-        
-        # y_pred_list.append(y_pred)
         y_pred_list.append(type_traff)
-
-        # if labels_list[i] == y_pred:
-        #     corr_classified += 1
-
         i += 1
-
-# print("Running the model successfully")
-# print("Number of correctly classified images = %d" % corr_classified)
-# print("Number of incorrectly classified images = %d" % (numExamples - corr_classified))
-# print("Final accuracy = %f" % (corr_classified / numExamples))
 
 fig, axs = plt.subplots(2,4,figsize=(70,80))
 fig.tight_layout(h_pad = 20)
