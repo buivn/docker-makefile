@@ -1,11 +1,11 @@
 import sys
 import math
 
-sys.path.append('/home/ubuntu18/cs695_005/Complex-YOLOv4-Pytorch/src/mayavi')
-sys.path.append('/usr/lib/python2.7/dist-packages/tvtk')
+# sys.path.append('/home/ubuntu18/cs695_005/Complex-YOLOv4-Pytorch/src/mayavi')
+# sys.path.append('/usr/lib/python2.7/dist-packages/tvtk')
 
 import numpy as np
-import mayavi.mlab as mlab
+# import mayavi.mlab as mlab
 import cv2
 
 sys.path.append('../')
@@ -14,127 +14,127 @@ from data_process import kitti_data_utils, kitti_bev_utils, transformation
 import config.kitti_config as cnf
 
 
-def draw_lidar_simple(pc, color=None):
-    ''' Draw lidar points. simplest set up. '''
-    fig = mlab.figure(figure=None, bgcolor=(0, 0, 0), fgcolor=None, engine=None, size=(1600, 1000))
-    if color is None: color = pc[:, 2]
-    # draw points
-    mlab.points3d(pc[:, 0], pc[:, 1], pc[:, 2], color, color=None, mode='point', colormap='gnuplot', scale_factor=1,
-                  figure=fig)
-    # draw origin
-    mlab.points3d(0, 0, 0, color=(1, 1, 1), mode='sphere', scale_factor=0.2)
-    # draw axis
-    axes = np.array([
-        [2., 0., 0., 0.],
-        [0., 2., 0., 0.],
-        [0., 0., 2., 0.],
-    ], dtype=np.float64)
-    mlab.plot3d([0, axes[0, 0]], [0, axes[0, 1]], [0, axes[0, 2]], color=(1, 0, 0), tube_radius=None, figure=fig)
-    mlab.plot3d([0, axes[1, 0]], [0, axes[1, 1]], [0, axes[1, 2]], color=(0, 1, 0), tube_radius=None, figure=fig)
-    mlab.plot3d([0, axes[2, 0]], [0, axes[2, 1]], [0, axes[2, 2]], color=(0, 0, 1), tube_radius=None, figure=fig)
-    mlab.view(azimuth=180, elevation=70, focalpoint=[12.0909996, -1.04700089, -2.03249991], distance=62.0, figure=fig)
-    return fig
+# def draw_lidar_simple(pc, color=None):
+#     ''' Draw lidar points. simplest set up. '''
+#     fig = mlab.figure(figure=None, bgcolor=(0, 0, 0), fgcolor=None, engine=None, size=(1600, 1000))
+#     if color is None: color = pc[:, 2]
+#     # draw points
+#     mlab.points3d(pc[:, 0], pc[:, 1], pc[:, 2], color, color=None, mode='point', colormap='gnuplot', scale_factor=1,
+#                   figure=fig)
+#     # draw origin
+#     mlab.points3d(0, 0, 0, color=(1, 1, 1), mode='sphere', scale_factor=0.2)
+#     # draw axis
+#     axes = np.array([
+#         [2., 0., 0., 0.],
+#         [0., 2., 0., 0.],
+#         [0., 0., 2., 0.],
+#     ], dtype=np.float64)
+#     mlab.plot3d([0, axes[0, 0]], [0, axes[0, 1]], [0, axes[0, 2]], color=(1, 0, 0), tube_radius=None, figure=fig)
+#     mlab.plot3d([0, axes[1, 0]], [0, axes[1, 1]], [0, axes[1, 2]], color=(0, 1, 0), tube_radius=None, figure=fig)
+#     mlab.plot3d([0, axes[2, 0]], [0, axes[2, 1]], [0, axes[2, 2]], color=(0, 0, 1), tube_radius=None, figure=fig)
+#     mlab.view(azimuth=180, elevation=70, focalpoint=[12.0909996, -1.04700089, -2.03249991], distance=62.0, figure=fig)
+#     return fig
 
 
-def draw_lidar(pc, color=None, fig1=None, bgcolor=(0, 0, 0), pts_scale=1, pts_mode='point', pts_color=None):
-    ''' Draw lidar points
-    Args:
-        pc: numpy array (n,3) of XYZ
-        color: numpy array (n) of intensity or whatever
-        fig: mayavi figure handler, if None create new one otherwise will use it
-    Returns:
-        fig: created or used fig
-    '''
-    # if fig1 is None: fig1 = mlab.figure(figure="point cloud", bgcolor=bgcolor, fgcolor=None, engine=None, size=(1600, 1000))
+# def draw_lidar(pc, color=None, fig1=None, bgcolor=(0, 0, 0), pts_scale=1, pts_mode='point', pts_color=None):
+#     ''' Draw lidar points
+#     Args:
+#         pc: numpy array (n,3) of XYZ
+#         color: numpy array (n) of intensity or whatever
+#         fig: mayavi figure handler, if None create new one otherwise will use it
+#     Returns:
+#         fig: created or used fig
+#     '''
+#     # if fig1 is None: fig1 = mlab.figure(figure="point cloud", bgcolor=bgcolor, fgcolor=None, engine=None, size=(1600, 1000))
 
-    mlab.clf(figure=None)
-    if color is None: color = pc[:, 2]
-    mlab.points3d(pc[:, 0], pc[:, 1], pc[:, 2], color, color=pts_color, mode=pts_mode, colormap='gnuplot',
-                  scale_factor=pts_scale, figure=fig1)
+#     mlab.clf(figure=None)
+#     if color is None: color = pc[:, 2]
+#     mlab.points3d(pc[:, 0], pc[:, 1], pc[:, 2], color, color=pts_color, mode=pts_mode, colormap='gnuplot',
+#                   scale_factor=pts_scale, figure=fig1)
 
-    # draw origin
-    mlab.points3d(0, 0, 0, color=(1, 1, 1), mode='sphere', scale_factor=0.2)
+#     # draw origin
+#     mlab.points3d(0, 0, 0, color=(1, 1, 1), mode='sphere', scale_factor=0.2)
 
-    # draw axis
-    axes = np.array([
-        [2., 0., 0., 0.],
-        [0., 2., 0., 0.],
-        [0., 0., 2., 0.],
-    ], dtype=np.float64)
+#     # draw axis
+#     axes = np.array([
+#         [2., 0., 0., 0.],
+#         [0., 2., 0., 0.],
+#         [0., 0., 2., 0.],
+#     ], dtype=np.float64)
 
-    mlab.plot3d([0, axes[0, 0]], [0, axes[0, 1]], [0, axes[0, 2]], color=(1, 0, 0), tube_radius=None, figure=fig1)
-    mlab.plot3d([0, axes[1, 0]], [0, axes[1, 1]], [0, axes[1, 2]], color=(0, 1, 0), tube_radius=None, figure=fig1)
-    mlab.plot3d([0, axes[2, 0]], [0, axes[2, 1]], [0, axes[2, 2]], color=(0, 0, 1), tube_radius=None, figure=fig1)
+#     mlab.plot3d([0, axes[0, 0]], [0, axes[0, 1]], [0, axes[0, 2]], color=(1, 0, 0), tube_radius=None, figure=fig1)
+#     mlab.plot3d([0, axes[1, 0]], [0, axes[1, 1]], [0, axes[1, 2]], color=(0, 1, 0), tube_radius=None, figure=fig1)
+#     mlab.plot3d([0, axes[2, 0]], [0, axes[2, 1]], [0, axes[2, 2]], color=(0, 0, 1), tube_radius=None, figure=fig1)
 
-    # draw fov (todo: update to real sensor spec.)
-    fov = np.array([  # 45 degree
-        [20., 20., 0., 0.],
-        [20., -20., 0., 0.],
-    ], dtype=np.float64)
+#     # draw fov (todo: update to real sensor spec.)
+#     fov = np.array([  # 45 degree
+#         [20., 20., 0., 0.],
+#         [20., -20., 0., 0.],
+#     ], dtype=np.float64)
 
-    mlab.plot3d([0, fov[0, 0]], [0, fov[0, 1]], [0, fov[0, 2]], color=(1, 1, 1), tube_radius=None, line_width=1,
-                figure=fig1)
-    mlab.plot3d([0, fov[1, 0]], [0, fov[1, 1]], [0, fov[1, 2]], color=(1, 1, 1), tube_radius=None, line_width=1,
-                figure=fig1)
+#     mlab.plot3d([0, fov[0, 0]], [0, fov[0, 1]], [0, fov[0, 2]], color=(1, 1, 1), tube_radius=None, line_width=1,
+#                 figure=fig1)
+#     mlab.plot3d([0, fov[1, 0]], [0, fov[1, 1]], [0, fov[1, 2]], color=(1, 1, 1), tube_radius=None, line_width=1,
+#                 figure=fig1)
 
-    # draw square region
-    TOP_Y_MIN = -20
-    TOP_Y_MAX = 20
-    TOP_X_MIN = 0
-    TOP_X_MAX = 40
-    TOP_Z_MIN = -2.0
-    TOP_Z_MAX = 0.4
+#     # draw square region
+#     TOP_Y_MIN = -20
+#     TOP_Y_MAX = 20
+#     TOP_X_MIN = 0
+#     TOP_X_MAX = 40
+#     TOP_Z_MIN = -2.0
+#     TOP_Z_MAX = 0.4
 
-    x1 = TOP_X_MIN
-    x2 = TOP_X_MAX
-    y1 = TOP_Y_MIN
-    y2 = TOP_Y_MAX
-    mlab.plot3d([x1, x1], [y1, y2], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
-    mlab.plot3d([x2, x2], [y1, y2], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
-    mlab.plot3d([x1, x2], [y1, y1], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
-    mlab.plot3d([x1, x2], [y2, y2], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
+#     x1 = TOP_X_MIN
+#     x2 = TOP_X_MAX
+#     y1 = TOP_Y_MIN
+#     y2 = TOP_Y_MAX
+#     mlab.plot3d([x1, x1], [y1, y2], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
+#     mlab.plot3d([x2, x2], [y1, y2], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
+#     mlab.plot3d([x1, x2], [y1, y1], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
+#     mlab.plot3d([x1, x2], [y2, y2], [0, 0], color=(0.5, 0.5, 0.5), tube_radius=0.1, line_width=1, figure=fig1)
 
-    # mlab.orientation_axes()
-    mlab.view(azimuth=180, elevation=70, focalpoint=[12.0909996, -1.04700089, -2.03249991], distance=60.0, figure=fig1)
-    return fig1
+#     # mlab.orientation_axes()
+#     mlab.view(azimuth=180, elevation=70, focalpoint=[12.0909996, -1.04700089, -2.03249991], distance=60.0, figure=fig1)
+#     return fig1
 
 
-def draw_gt_boxes3d(gt_boxes3d, fig, color=(1, 1, 1), line_width=2, draw_text=True, text_scale=(1, 1, 1),
-                    color_list=None):
-    ''' Draw 3D bounding boxes
-    Args:
-        gt_boxes3d: numpy array (n,8,3) for XYZs of the box corners
-        fig: mayavi figure handler
-        color: RGB value tuple in range (0,1), box line color
-        line_width: box line width
-        draw_text: boolean, if true, write box indices beside boxes
-        text_scale: three number tuple
-        color_list: a list of RGB tuple, if not None, overwrite color.
-    Returns:
-        fig: updated fig
-    '''
-    num = len(gt_boxes3d)
-    for n in range(num):
-        b = gt_boxes3d[n]
-        if color_list is not None:
-            color = color_list[n]
-        if draw_text: mlab.text3d(b[4, 0], b[4, 1], b[4, 2], '%d' % n, scale=text_scale, color=color, figure=fig)
-        for k in range(0, 4):
-            # http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html
-            i, j = k, (k + 1) % 4
-            mlab.plot3d([b[i, 0], b[j, 0]], [b[i, 1], b[j, 1]], [b[i, 2], b[j, 2]], color=color, tube_radius=None,
-                        line_width=line_width, figure=fig)
+# def draw_gt_boxes3d(gt_boxes3d, fig, color=(1, 1, 1), line_width=2, draw_text=True, text_scale=(1, 1, 1),
+#                     color_list=None):
+#     ''' Draw 3D bounding boxes
+#     Args:
+#         gt_boxes3d: numpy array (n,8,3) for XYZs of the box corners
+#         fig: mayavi figure handler
+#         color: RGB value tuple in range (0,1), box line color
+#         line_width: box line width
+#         draw_text: boolean, if true, write box indices beside boxes
+#         text_scale: three number tuple
+#         color_list: a list of RGB tuple, if not None, overwrite color.
+#     Returns:
+#         fig: updated fig
+#     '''
+#     num = len(gt_boxes3d)
+#     for n in range(num):
+#         b = gt_boxes3d[n]
+#         if color_list is not None:
+#             color = color_list[n]
+#         if draw_text: mlab.text3d(b[4, 0], b[4, 1], b[4, 2], '%d' % n, scale=text_scale, color=color, figure=fig)
+#         for k in range(0, 4):
+#             # http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html
+#             i, j = k, (k + 1) % 4
+#             mlab.plot3d([b[i, 0], b[j, 0]], [b[i, 1], b[j, 1]], [b[i, 2], b[j, 2]], color=color, tube_radius=None,
+#                         line_width=line_width, figure=fig)
 
-            i, j = k + 4, (k + 1) % 4 + 4
-            mlab.plot3d([b[i, 0], b[j, 0]], [b[i, 1], b[j, 1]], [b[i, 2], b[j, 2]], color=color, tube_radius=None,
-                        line_width=line_width, figure=fig)
+#             i, j = k + 4, (k + 1) % 4 + 4
+#             mlab.plot3d([b[i, 0], b[j, 0]], [b[i, 1], b[j, 1]], [b[i, 2], b[j, 2]], color=color, tube_radius=None,
+#                         line_width=line_width, figure=fig)
 
-            i, j = k, k + 4
-            mlab.plot3d([b[i, 0], b[j, 0]], [b[i, 1], b[j, 1]], [b[i, 2], b[j, 2]], color=color, tube_radius=None,
-                        line_width=line_width, figure=fig)
-    # mlab.show(1)
-    # mlab.view(azimuth=180, elevation=70, focalpoint=[ 12.0909996 , -1.04700089, -2.03249991], distance=62.0, figure=fig)
-    return fig
+#             i, j = k, k + 4
+#             mlab.plot3d([b[i, 0], b[j, 0]], [b[i, 1], b[j, 1]], [b[i, 2], b[j, 2]], color=color, tube_radius=None,
+#                         line_width=line_width, figure=fig)
+#     # mlab.show(1)
+#     # mlab.view(azimuth=180, elevation=70, focalpoint=[ 12.0909996 , -1.04700089, -2.03249991], distance=62.0, figure=fig)
+#     return fig
 
 
 def get_lidar_in_image_fov(pc_velo, calib, xmin, ymin, xmax, ymax,
@@ -167,37 +167,37 @@ def show_image_with_boxes(img, objects, calib, show3d=False):
     return img2
 
 
-def show_lidar_with_boxes(pc_velo, objects, calib,
-                          img_fov=False, img_width=None, img_height=None, fig=None):
-    ''' Show all LiDAR points.
-        Draw 3d box in LiDAR point cloud (in velo coord system) '''
+# def show_lidar_with_boxes(pc_velo, objects, calib,
+#                           img_fov=False, img_width=None, img_height=None, fig=None):
+#     ''' Show all LiDAR points.
+#         Draw 3d box in LiDAR point cloud (in velo coord system) '''
 
-    if not fig:
-        fig = mlab.figure(figure="KITTI_POINT_CLOUD", bgcolor=(0, 0, 0), fgcolor=None, engine=None, size=(1250, 550))
+#     if not fig:
+#         fig = mlab.figure(figure="KITTI_POINT_CLOUD", bgcolor=(0, 0, 0), fgcolor=None, engine=None, size=(1250, 550))
 
-    if img_fov:
-        pc_velo = get_lidar_in_image_fov(pc_velo, calib, 0, 0, img_width, img_height)
+#     if img_fov:
+#         pc_velo = get_lidar_in_image_fov(pc_velo, calib, 0, 0, img_width, img_height)
 
-    draw_lidar(pc_velo, fig1=fig)
+#     draw_lidar(pc_velo, fig1=fig)
 
-    for obj in objects:
+#     for obj in objects:
 
-        if obj.type == 'DontCare': continue
-        # Draw 3d bounding box
-        box3d_pts_2d, box3d_pts_3d = kitti_data_utils.compute_box_3d(obj, calib.P)
-        box3d_pts_3d_velo = calib.project_rect_to_velo(box3d_pts_3d)
+#         if obj.type == 'DontCare': continue
+#         # Draw 3d bounding box
+#         box3d_pts_2d, box3d_pts_3d = kitti_data_utils.compute_box_3d(obj, calib.P)
+#         box3d_pts_3d_velo = calib.project_rect_to_velo(box3d_pts_3d)
 
-        # Draw heading arrow
-        ori3d_pts_2d, ori3d_pts_3d = kitti_data_utils.compute_orientation_3d(obj, calib.P)
-        ori3d_pts_3d_velo = calib.project_rect_to_velo(ori3d_pts_3d)
-        x1, y1, z1 = ori3d_pts_3d_velo[0, :]
-        x2, y2, z2 = ori3d_pts_3d_velo[1, :]
+#         # Draw heading arrow
+#         ori3d_pts_2d, ori3d_pts_3d = kitti_data_utils.compute_orientation_3d(obj, calib.P)
+#         ori3d_pts_3d_velo = calib.project_rect_to_velo(ori3d_pts_3d)
+#         x1, y1, z1 = ori3d_pts_3d_velo[0, :]
+#         x2, y2, z2 = ori3d_pts_3d_velo[1, :]
 
-        draw_gt_boxes3d([box3d_pts_3d_velo], fig=fig, color=(0, 1, 1), line_width=2, draw_text=False)
+#         draw_gt_boxes3d([box3d_pts_3d_velo], fig=fig, color=(0, 1, 1), line_width=2, draw_text=False)
 
-        mlab.plot3d([x1, x2], [y1, y2], [z1, z2], color=(0.5, 0.5, 0.5), tube_radius=None, line_width=1, figure=fig)
+#         mlab.plot3d([x1, x2], [y1, y2], [z1, z2], color=(0.5, 0.5, 0.5), tube_radius=None, line_width=1, figure=fig)
 
-    mlab.view(distance=90)
+#     mlab.view(distance=90)
 
 
 def merge_rgb_to_bev(img_rgb, img_bev, output_width):

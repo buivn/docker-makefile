@@ -3,6 +3,7 @@ set -e
 
 # Needed to point the system towards pytorch CUDA
 export LD_LIBRARY_PATH=/usr/local/lib/python3.6/dist-packages/torch/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=/scripts/pcl:/script/pcl/config:/script/pcl/models:/script/pcl/utils:/script/pcl/data_process:$PYTHONPATH
 
 # Main command
 if [ "$XPASSTHROUGH" = true ]

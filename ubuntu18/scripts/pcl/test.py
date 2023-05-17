@@ -80,12 +80,14 @@ def parse_test_configs():
     ####################################################################
     ##############Dataset, Checkpoints, and results dir configs#########
     ####################################################################
-    configs.working_dir = '../'
-    configs.dataset_dir = os.path.join(configs.working_dir, 'dataset', 'kitti')
+    # configs.working_dir = '../'
+    # configs.dataset_dir = os.path.join(configs.working_dir, 'dataset', 'kitti')
+    configs.dataset_dir = configs.dataPath
 
     if configs.save_test_output:
-        configs.results_dir = os.path.join(configs.working_dir, 'results', configs.saved_fn)
-        make_folder(configs.results_dir)
+        # configs.results_dir = os.path.join(configs.working_dir, 'results', configs.saved_fn)
+        configs.results_dir = 'outputs/pcl'
+        # make_folder(configs.results_dir)
 
     return configs
 
@@ -163,11 +165,11 @@ if __name__ == '__main__':
             #     else:
             #         raise TypeError
 
-            # if configs.show_image:
-            #     cv2.imshow('test-img', out_img)
-            #     print('\n[INFO] Press n to see the next sample >>> Press Esc to quit...\n')
-            #     if cv2.waitKey(0) & 0xFF == 27:
-            #         break
+            if configs.show_image:
+                cv2.imshow('test-img', out_img)
+                print('\n[INFO] Press n to see the next sample >>> Press Esc to quit...\n')
+                if cv2.waitKey(0) & 0xFF == 27:
+                    break
     if out_cap:
         out_cap.release()
     cv2.destroyAllWindows()
