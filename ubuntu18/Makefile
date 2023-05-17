@@ -139,14 +139,20 @@ test-alexnet-trafffsign-reg:
 
 
 # Run Yolo-v4 - Point Cloud data  GPU
-.PHONY: test-yolov4-pcl-vehicle detection 
-test-yolov4-pcl-vehicle detection :
+.PHONY: test-yolov4-pcl-vehicle-detection 
+test-yolov4-pcl-vehicle-detection :
 	@echo "test yolov4 pcl vehicles detection network"
 	@docker run --rm --init --net=host \
 		--gpus=device=0 \
 		$(DOCKER_ARGS) $(DOCKER_CORE_ARGS) \
 		${IMAGE_NAME}:${VERSION} \
-		python3 -m scripts.pcl.traffic_sign_recognition
+		python3 -m scripts.pcl.test \
+		--cfgfile scripts/pcl/config/cfg/complex_yolov4.cfg\
+		--pretrained_path scripts/pcl/complex-yolov4/complex_yolov4_mse_loss.pth\
+		--dataPath scripts/pcl/dataset/kitti\
+		--gpu_idx 0\
+		--num_samples 5 \
+		--save_test_output 
 
 
 
